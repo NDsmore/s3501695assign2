@@ -1,0 +1,164 @@
+#!/bit/bas
+#Written by Niall Dunsmore - S3501695
+
+function task2 () {
+# configopen is essentially a boolean to keep the program looping
+# until the user manually quits. I assigned true and false values 
+# just make this easier on my eyes. I am a lazy coder.
+#
+#Everthing below is just using a simple one dimentional array 
+#To find the desired output, or to quit the program (Or 
+#repetedly go through the menu if you're into that sort
+#of thing you sicko
+
+   echo "Welcome to Led_Konfigurator!"
+   true=1
+   false=0
+   configopen=1
+
+   while [ $configopen -eq $true ]
+   do
+
+   echo "============================"
+   echo "Please select an led to configure:"
+   LEDFILES="/sys/class/leds/*"
+   min=1
+   count=1
+   for l in $LEDFILES
+   do
+	echo "$count) ${l##*/}"
+	ledoptions[count]="$l"
+	((count++)) 
+   done
+   echo "$count) Quit"
+   loop1=0
+
+   while [ $loop1 -eq $false ]
+   do
+   read option1
+   
+   if [ $option1 -gt $count ] || [ $option1 -lt $min ]
+   then
+	echo "Please enter a valid selection"
+
+   elif [ $option1 == $count ]
+   then
+	echo "Goodbye!"
+	loop1=$true
+        configopen=$false
+   
+   else 
+   	echo "You have chosen ${ledoptions[option1]##*/}"
+   	loop1=$min
+	task3
+   fi
+   done
+   done
+
+}
+# Because this menu is very specific, I just chose to build
+# a list using the choice case method rather than a bunch
+# of if and else statements. Downside to this is I had to create
+# another function to reprint the menu once it completes task 5
+
+# Task4 is also in this function. It was so simple that I decided
+# not to include them as seperate functions.
+
+
+function task3 () {
+echo ""
+echo "[${ledoptions[option1]##*/}]"
+echo "=========="
+echo "What would you like to do with this led?"
+echo "Please enter a number (1-6) for your choice:"
+choices=("turn on" "turn off" "associate with a system event" "associate with the performance of a process" "stop association with a process performance" "quit to main menu")
+select opt in "${choices[@]}"
+do
+   case $opt in
+	"turn on")
+	   echo 1 > ${ledoptions[option1]}/brightness
+	   ;;
+	"turn off")
+	   echo 0 > ${ledoptions[option1]}/brightness
+	   ;;
+	"associate with a system event")
+	   task5
+	   ;;
+	"associate with the performance of a process performance")
+	   echo "work in progress"
+	   ;;
+	"stop association with a process")
+	   echo "work in progress"
+	   ;;
+	"quit to main menu")
+	   echo "Returning to main menu"
+	   break
+	   ;;
+	*) echo "invalid option";;
+   esac
+done
+
+}
+
+function task5 () {
+
+#This function is essentially a repeat with task1
+#I used cat to read the input of the triggerfile
+#and a one dimensional array to store the input and a 
+#loop to print it out, followed by a read statement
+#to execute the desired outcome.
+
+   
+   triggerfile="${ledoptions[option1]}/trigger"
+   triggerlines=`cat $triggerfile`   
+   taskfivecount=1
+   echo ""
+   echo "Associate Led with a system Event"
+   echo "================================="
+   echo "Available events are:"
+   echo "---------------------"
+   for line in $triggerlines
+   do
+	echo "$taskfivecount) $line"
+	tfarray[$taskfivecount]="$line" 
+	((taskfivecount++))
+	
+   done
+   read taskfiveinput
+
+   echo ${tfarray[$taskfiveinput]} > triggerfile
+   echo "you have chosen ${tfarray[$taskfiveinput]}"
+   echo "${ledoptions[option1]##*/} now associated with ${tfarray[$taskfiveinput]}" 
+   echo "returning to led config menu"
+   task3menu
+}
+
+function task3menu () {
+
+#Easy way to recycle the menu when going back to it
+echo ""
+echo "[${ledoptions[option1]##*/}]"
+echo "=========="
+echo "What would you like to do with this led?"
+echo "Please enter a number (1-6) for your choice:"
+echo "1) turn on"
+echo "2) turn off"
+echo "3) associate with a system event"
+echo "4) associate with the performance of a process"
+echo "5) stop association with a process performance"
+echo "6) quit to main menu"
+
+}
+
+task7 () {
+
+#I started to read into how to kill the proccesses
+#but my brain decided to go full Hans Gruber and long
+#story short Bruce Willis wont leave my house now
+
+egrep '[' ${ledoptions[option1]}/trigger
+
+}
+
+task2
+
